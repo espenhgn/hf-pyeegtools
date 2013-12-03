@@ -2,6 +2,8 @@
 '''
 Procedures to read analyze EEG channels Axona dacqUSB file formats
 
+Project home: https://code.google.com/p/hf-pyeegtools/
+
 No warranties, released under GPLv3
 
 (c) espenhgn@gmail.com, Hafting-Fyhn lab, UIO, 2013
