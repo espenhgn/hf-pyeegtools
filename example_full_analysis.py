@@ -64,11 +64,20 @@ if __name__ == '__main__':
 
     ##list of datasets to go through
     #load from z-area, setfiles can be added to list at will
+    #the last indexing operation select just a few .set-files
     setfiles = []
-    #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
-    #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
-    #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[5:6]
-    setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
+    #Windows
+    if os.sys.platform in ['win32', 'win64', 'windows']:
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1079\\*.set")[:4]   
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1199\\*.set")[:4]    
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1227/*.set")[5:6]
+        setfiles += glob.glob("Z:\\Espen\\rats\\1371\\*.set")
+    #OS X, Linux, Unix etc
+    else:
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[5:6]
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
 
 
     # #######################

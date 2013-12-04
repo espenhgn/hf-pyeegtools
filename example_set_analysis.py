@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # ##############
     # parameters
     # ##############
-    time_window = (0, 10)     #window in time series plots
+    time_window = (0, 20)     #window in time series plots
     
     #frequency domain analysis
     NFFT = 512       #number of datapoints in each block for Fourier analysis
@@ -68,9 +68,16 @@ if __name__ == '__main__':
 
     #load from z-area, setfiles can be added to list at will
     setfiles = []
-    #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
-    #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
-    setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[:4]    
+    #Windows
+    if os.sys.platform in ['win32', 'win64', 'windows']:
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1079\\*.set")[:4]   
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1199\\*.set")[:4]    
+        setfiles += glob.glob("Z:\\Espen\\rats\\1227\\*.set")[:4]
+    #OS X, Linux, Unix etc
+    else:
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[:4]    
 
     #container with all loaded datasets
     datas = []
@@ -164,6 +171,8 @@ if __name__ == '__main__':
                 
             if k == 0:
                 ax.set_title(titles[i])
-        
+    
+    #save figure
+    #fig.savefig('path/to/figures/figure.pdf')
 
     
