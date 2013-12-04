@@ -27,7 +27,7 @@ import os
 class EEGfile(object):
     '''class EEG - axona .eeg file reader'''
 
-    def __init__(self, fname, headerlines=11):
+    def __init__(self, fname, headerlines=11, verbose=False):
         '''
         Axona .eeg file reader.
 
@@ -63,7 +63,8 @@ class EEGfile(object):
             #split attribute name and value
             attr, value = line.split('\r\n')[0].split(' ', 1)
 
-            print attr, value
+            if verbose:
+                print attr, value
 
             #attempt cast to int, float, str in that order:
             try:
@@ -138,7 +139,7 @@ class Setfile(object):
 
 
 class Posfile(object):
-    def __init__(self, fname, postprocess=True, headerlines=27):
+    def __init__(self, fname, postprocess=True, headerlines=27, verbose=False):
         '''
         Axona .pos-file reader implemented as a class.
         
@@ -189,8 +190,9 @@ class Posfile(object):
             
             #split attribute name and value
             attr, value = line.split('\r\n')[0].split(' ', 1)
-
-            print attr, value
+            
+            if verbose: 
+                print attr, value
             
             #attempt cast to int, float, str in that order:
             try:
@@ -943,6 +945,7 @@ def figure2(setname, dataset, wavelets,
     
     ax = fig.add_subplot(423)
     plt.plot(tvec[time_inds], dataset.cwt[f_theta_ind, time_inds].real, 'k')
+    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_theta_ind, time_inds]), 'r')
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
     plt.title(r'theta signal ($\mathrm{Re}(X_\omega)$, f=%i Hz)' % f_theta)
     
