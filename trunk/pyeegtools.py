@@ -514,7 +514,7 @@ def get_morlet_wavelets(waveletfreqs=np.arange(2, 81, 2), Fs=250,
     return wavelets
 
 
-def apply_wavelets(datasets, wavelets):
+def apply_wavelets(datasets, wavelets, method='fftconvolve'):
     '''
     Recursively apply wavelet coefficients for each wavelet center frequency to
     signal in datasets, discarding imaginary component
@@ -523,8 +523,16 @@ def apply_wavelets(datasets, wavelets):
     ::
         datasets: dict, as output by pyeegtools.get_datasets(path/to/file.set')
         wavelets : dict, as output by pyeegtools.get_morlet_wavelets(**kwargs)
+        method : string, either 'convolve' or 'fftconvolve' from scipy.signal
     
     '''
+    if method == 'fftconvolve':
+        convolve = ss.fftconvolve
+    elif method == 'convolve':
+        convolve = ss.convolve
+    else:
+        raise Exception, "method must be 'convolve' or 'fftconvolve'!"
+    
     for setname, value in datasets.items():
         if setname in ['set', 'setfile', 'position', 'posfile']:
             continue
@@ -533,7 +541,7 @@ def apply_wavelets(datasets, wavelets):
                                         dtype=complex)
         for i, wavelet in enumerate(wavelets['coeffs']):
             #compute the wavelet transform:
-            value.cwt[i, ] = ss.convolve(value.eeg, wavelet, 'same')
+            value.cwt[i, ] = convolve(value.eeg, wavelet, 'same')
 
 
 def compute_cwt_events(datasets, wavelets,
@@ -753,7 +761,8 @@ def colorbar(fig, ax, im, label):
     cbar.set_label(label, ha='center')
 
 
-def draw_crossfreq_coherence(setname, dataset, wavelets, NFFT=256):
+def draw_crossfreq_coherence(setname, dataset, wavelets, NFFT=256,
+                             fcutoff=0, clim=None):
     '''do the cross-frequency coherence image plot as function of
     frequency resolved signal phase from hilbert_transforms at each
     wavelet center frequency
@@ -763,7 +772,9 @@ def draw_crossfreq_coherence(setname, dataset, wavelets, NFFT=256):
         setname: str, figure suptitle
         dataset: <pyeegtools.EEGfile> object
         wavelets : dict, as output by pyeegtools.get_morlet_wavelets(**kwargs)
-        NFFT : int in base 2, frequency resolution of 
+        NFFT : int in base 2, frequency resolution of FFT coherence
+        fcutoff : float, freqs lower than this will not be shown on x-axis
+        clim : None or [min, max] of colormap on [0, 1]
     
     return:
     ::
@@ -785,6 +796,11 @@ def draw_crossfreq_coherence(setname, dataset, wavelets, NFFT=256):
         Cxy.append(cxy)
     Cxy = np.array(Cxy)
     
+    #cut off freqs
+    if fcutoff > 0:
+        Cxy = Cxy[:, f >= fcutoff]
+        f = f[f >= fcutoff]
+        
     
     extent = [
         f.min(), f.max(),
@@ -800,6 +816,7 @@ def draw_crossfreq_coherence(setname, dataset, wavelets, NFFT=256):
                 origin='bottom',
                 interpolation='nearest',
                 cmap=plt.get_cmap('jet', 51),
+                clim=clim,
                 rasterized=True)
     plt.axis('tight')
     ax.set_title('cross-frequency coherence')
