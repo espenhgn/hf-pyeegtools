@@ -689,13 +689,14 @@ def compute_cycle_average(dataset, wavelets, freq=8, numcycles=100):
 def get_high_speed_inds(position, event_times, speedlimit):
     '''
     return indices corresponding to event_times recorded when animal was
-    running faster than speed limit
+    running faster than speed >= speedlimit, or with speeds on the
+    interval speedlimit = [minspeed, maxspeed)
     
     kwargs:
     ::
         position : <pyeegtools.Posfile> object
         event_times : np.array, time stamps of EEG events
-        speedlimit : float, speed in m/s
+        speedlimit : float, or list of floats, speed in m/s
         
     return:
     ::
@@ -723,7 +724,13 @@ def get_high_speed_inds(position, event_times, speedlimit):
 
     #setup of bar plots
     #distribute events to bins
-    inds = event_speeds >= speedlimit
+    if speedlimit == float or speedlimit == int:
+        inds = event_speeds >= speedlimit
+    else:
+        if len(speedlimit) != 2:
+            raise Exception, 'speedlimit must be list with two floats!'
+        else:
+            inds = (event_speeds >= speedlimit[0]) & (event_speeds < speedlimit[1])
 
     return inds
 
@@ -964,7 +971,7 @@ def figure2(setname, dataset, wavelets,
     plt.plot(tvec[time_inds], dataset.cwt[f_theta_ind, time_inds].real, 'k')
     plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_theta_ind, time_inds]), 'r')
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
-    plt.title(r'theta signal ($\mathrm{Re}(X_\omega)$, f=%i Hz)' % f_theta)
+    plt.title(r'theta signal ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_theta)
     
     
     ax = fig.add_subplot(425)
@@ -974,21 +981,21 @@ def figure2(setname, dataset, wavelets,
     ax.set_yticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
     plt.ylabel(r'$\theta_\omega (t)$ (rad)')
     plt.xlabel(r't (s)')
-    plt.title(r'phase ($\arctan(\mathrm{Re}(X_\omega)/\mathrm{Im}(X_\omega))$, f=%i Hz)' % f_theta)
+    plt.title(r'phase ($\arctan(\mathrm{Re}(X_\omega)/\mathrm{Im}(X_\omega))$, $\omega$=%i Hz)' % f_theta)
     
     
     ax = fig.add_subplot(422)
     plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_low, time_inds].real, 'k')
     plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_low, time_inds]), 'r')
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
-    plt.title(r'low gamma ($\mathrm{Re}(X_\omega)$, f=%i Hz)' % f_gamma_low)
+    plt.title(r'low gamma ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_gamma_low)
     
     
     ax = fig.add_subplot(424)
     plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_high, time_inds].real, 'k')
     plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_high, time_inds]), 'r')
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
-    plt.title(r'high gamma ($\mathrm{Re}(X_\omega)$, f=%i Hz)' % f_gamma_high)
+    plt.title(r'high gamma ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_gamma_high)
     
     
     #compute phase-amplitude histogram (see Tort et al. 2010)
@@ -1008,7 +1015,7 @@ def figure2(setname, dataset, wavelets,
     plt.axis('tight')
     ax.set_xticks([-np.pi,-np.pi/2, 0, np.pi/2, np.pi])
     ax.set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
-    plt.title(r'phase-amplitude, f=%i Hz vs. f=%i Hz' % (f_theta, f_gamma_low))
+    plt.title(r'phase-amplitude, $\omega$=%i Hz vs. $\omega$=%i Hz' % (f_theta, f_gamma_low))
     plt.ylabel(r'$|(X_\omega)|$ (-)')
 
     
@@ -1029,7 +1036,7 @@ def figure2(setname, dataset, wavelets,
     plt.axis('tight')
     ax.set_xticks([-np.pi,-np.pi/2, 0, np.pi/2, np.pi])
     ax.set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
-    plt.title(r'phase-amplitude, f=%i Hz vs. f=%i Hz' % (f_theta, f_gamma_high))
+    plt.title(r'phase-amplitude, $\omega$=%i Hz vs. $\omega$=%i Hz' % (f_theta, f_gamma_high))
     plt.xlabel(r'$\theta_\omega$ (rad)')
     plt.ylabel(r'$|(X_\omega)|$ (-)')
 
@@ -1068,6 +1075,7 @@ def figure3(datasets, setname):
         plt.plot(post_interp[1:],
                  abs(np.diff(np.sqrt(posx_interp**2+posy_interp**2)) / np.diff(post_interp)),
                  lw=2)
+        ax.semilogy()
         plt.xlabel('t (s)')
         plt.ylabel('speed (m/s)')
         plt.axis('tight')
@@ -1128,7 +1136,7 @@ def figure4(setname, dataset, wavelets, events, freq=8, thetafreqs=(0, 20), gamm
                origin='bottom')
     if column == 0:
         ax.set_ylabel(r'f (Hz)')
-    ax.set_title(r'$|(X_\omega)|$, f=%i Hz' % freq)
+    ax.set_title(r'$|(X_\omega)|$, $\omega$=%i Hz' % freq)
     ax.axis(ax.axis('tight'))
     colorbar(fig, ax, im, 'amplitude  (-)')
 
@@ -1188,7 +1196,7 @@ def figure5(setname, dataset, wavelets, cycles, events,
                cmap=plt.get_cmap('jet', 51),
                origin='bottom')
     ax.set_ylabel(r'f (Hz)')
-    ax.set_title(r'$|(X_\omega)|$, f=%i Hz average' % f_theta)
+    ax.set_title(r'$|(X_\omega)|$, $\omega$=%i Hz average' % f_theta)
     ax.axis(ax.axis('tight'))
     colorbar(fig, ax, im, r'$|(X_\omega)|$ (-)')
 
@@ -1206,7 +1214,7 @@ def figure5(setname, dataset, wavelets, cycles, events,
     ax.plot((np.arange(cycles.shape[1])-cycles.shape[1]/2)*1./dataset.Fs,
                         cycles.mean(axis=0))
     ax.axis(ax.axis('tight'))
-    ax.set_ylabel(r'$|(X_\omega)|$, f=%i Hz' % f_theta)
+    ax.set_ylabel(r'$|(X_\omega)|$, $\omega$=%i Hz' % f_theta)
     ax.set_xlabel('t (s)')
     
     #return figure object
@@ -1226,18 +1234,26 @@ def figure6(datasets, setname, wavelets,
     maxima = events[:, ind, :].max(axis=2).flatten()
 
     #get the continous rat speed
-    if datasets.has_key('position') & datasets['position'].valid:        
-        inds = get_high_speed_inds(datasets['position'], event_times, speedlimit)
-        
-        #data for boxes
-        data = [
-            maxima[inds==False],
-            maxima[inds]
-        ]
-        
-        #ticklabels
-        xticklabels=[r'$\less %.2f$ ms$^{-1}$' % speedlimit,
-                     r'$\geq %.2f$ ms$^{-1}$' % speedlimit]
+    if datasets.has_key('position') & datasets['position'].valid:
+        if speedlimit == float or speedlimit == int:
+            inds = get_high_speed_inds(datasets['position'], event_times, speedlimit)
+            
+            #data for boxes
+            data = [
+                maxima[inds==False],
+                maxima[inds]
+            ]
+            
+            #ticklabels
+            xticklabels = [r'$\less %.2f$ ms$^{-1}$' % speedlimit,
+                           r'$\geq %.2f$ ms$^{-1}$' % speedlimit]
+        else:
+            data = []
+            xticklabels = []
+            for limits in speedlimit:
+                data.append(maxima[get_high_speed_inds(datasets['position'],
+                                                event_times, limits)])
+                xticklabels.append(r'$%.2f \leq \upsilon \less %.2f$ ms$^{-1}$' % (limits[0], limits[1]))
     else:
         data = [maxima]
         xticklabels=['data']
@@ -1252,10 +1268,10 @@ def figure6(datasets, setname, wavelets,
 
     ax = fig.add_axes([xpos, 0.1, columnwidth, 0.8])
     ax.boxplot(data)
-    ax.set_title('f=%i Hz' % freq)
+    ax.set_title('$\omega$=%i Hz' % freq)
     if column == 0:
         ax.set_ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
-    ax.set_xticklabels(xticklabels, rotation=45)
+    ax.set_xticklabels(xticklabels, rotation=30)
     
     return fig, data
 
@@ -1286,9 +1302,9 @@ def figure7(setname, dataset, wavelets,
             tvec = np.arange(dataset.Fs*2*window).astype(float) / dataset.Fs - 0.5
             ind = wavelets['freqs'] == f
             ax = fig.add_subplot(len(freqs), len(freqs), subplot)
-            ax.plot(tvec, cwt_events.mean(axis=0).real[ind].flatten(), 'k', label='f=%i Hz' % f)
+            ax.plot(tvec, cwt_events.mean(axis=0).real[ind].flatten(), 'k', label='$\omega$=%i Hz' % f)
             ax.plot(tvec, np.abs(cwt_events.mean(axis=0))[ind].flatten(), 'r')
-            ax.set_title(r'$\mathrm{Re}(\bar{X_\omega})$, f=%iHz, %iHz' % (freq, f))
+            ax.set_title(r'$\mathrm{Re}(\bar{X_\omega})$, $\omega$=%iHz, %iHz' % (freq, f))
             ax.axis(ax.axis('tight'))
             
             subplot += 1
@@ -1390,7 +1406,7 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
     #set up axes titles
     titles = []
     for freq in freqs:
-        titles.append('f=%i Hz' % freq)
+        titles.append('$\omega$=%i Hz' % freq)
     
     #use the sorted datakeys
     keys = []
@@ -1425,20 +1441,26 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
             
             #wanna sort on animal movement:
             if datasets.has_key('position') & datasets['position'].valid:
-                inds = get_high_speed_inds(datasets['position'], times, speedlimit)
-                #extract the corresponding amplitudes
-                data.append(maxima[inds==False])
-                data.append(maxima[inds])
-                
-                xticklabels.append(r'ch.%i, $\leq%.2f$ ms$^{-1}$' % (j+1, speedlimit))
-                xticklabels.append(r'ch.%i, $>%.2f$ ms$^{-1}$' % (j+1, speedlimit))
+                if speedlimit == float:
+                    inds = get_high_speed_inds(datasets['position'], times, speedlimit)
+                    #extract the corresponding amplitudes
+                    data.append(maxima[inds==False])
+                    data.append(maxima[inds])
+                    
+                    xticklabels.append(r'ch.%i, $\leq%.2f$ ms$^{-1}$' % (j+1, speedlimit))
+                    xticklabels.append(r'ch.%i, $>%.2f$ ms$^{-1}$' % (j+1, speedlimit))
+                else:
+                    for limits in speedlimit:
+                        data.append(maxima[get_high_speed_inds(datasets['position'],
+                                                        times, limits)])
+                        xticklabels.append(r'ch.%i, $%.2f \leq \upsilon \less %.2f$ ms$^{-1}$' % (j+1, limits[0], limits[1]))
             else:
                 data.append(maxima)
                 xticklabels.append('ch.%i' % (j+1))
             
         ax = fig.add_subplot(1, len(freqs), i+1)
         ax.boxplot(data)
-        ax.set_xticklabels(xticklabels, rotation='vertical')
+        ax.set_xticklabels(xticklabels, rotation=30)
         ax.set_title(titles[i])
         if i ==0:
             ax.set_ylabel(r'$|X_w|$ amplitudes (-)')
