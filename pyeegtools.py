@@ -331,10 +331,10 @@ class Posfile(object):
             return
 
 
-        #mask out data
-        tpos = tpos[inds]
-        xpos = xpos[inds]
-        ypos = ypos[inds]
+        ##mask out data
+        #tpos = tpos[inds]
+        #xpos = xpos[inds]
+        #ypos = ypos[inds]
 
 
         #additional step, remove datapoints existing by themselves
@@ -1221,10 +1221,14 @@ def figure5(setname, dataset, wavelets, cycles, events,
             events[:, i, :] /= events[:, i, :].mean()
         events_mean = events.mean(axis=0)
         cbarlabel = r'norm$(|X_\omega|)$ (-)'
+        clim = (2-abs(events_mean).max(), abs(events_mean).max())
     else:
         events_mean = events.mean(axis=0)
         cbarlabel = r'$|X_\omega|$ (-)'
+        clim = (events_mean.min(), events_mean.max())
+
     
+
     
     #set up figure object
     fig = plt.figure(figsize=(10,10))
@@ -1237,7 +1241,7 @@ def figure5(setname, dataset, wavelets, cycles, events,
                extent=extent,
                interpolation='nearest',
                cmap=plt.get_cmap('jet', 51),
-               clim = (-abs(events_mean).max(), abs(events_mean).max())
+               clim = clim,
                origin='bottom', rasterized=True)
     ax.set_ylabel(r'f (Hz)')
     ax.axis(ax.axis('tight'))
