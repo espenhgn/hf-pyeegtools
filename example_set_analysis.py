@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #however, here the continous wavelets will be used.
     f_theta = 8
     f_gamma_low = 30
-    f_gamma_high = 60
+    f_gamma_high = 80
     phasebins = np.linspace(-np.pi, np.pi, 20) #bins for theta phases
     
     
