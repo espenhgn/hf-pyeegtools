@@ -91,9 +91,9 @@ if __name__ == '__main__':
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[5:6]
-        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
-        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
-        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
 
         setfiles = setfiles[:1]
         
@@ -119,16 +119,16 @@ if __name__ == '__main__':
         datasets = pyeegtools.get_datasets(setfile=setfile)
 
 
-        ##load pos file if present using Pos class, interpolate between points
-        #posfile = setfile.split('.set')[0] + '.pos'
-        #if os.path.isfile(posfile):
-        #    datasets['posfile'] = posfile
-        #    datasets['position'] = pyeegtools.Posfile(posfile, postprocess=False)
-        #    datasets['position'].process_dataset_positions(boxbounds=boxbounds,
-        #                               properboxsize=properboxsize,
-        #                               maxspeed=maxspeed,
-        #                               UniVarSpl_k=1, UniVarSpl_s=0.2,
-        #                               N=1, f_cut=f_cut)
+        #load pos file if present using Pos class, interpolate between points
+        posfile = setfile.split('.set')[0] + '.pos'
+        if os.path.isfile(posfile):
+            datasets['posfile'] = posfile
+            datasets['position'] = pyeegtools.Posfile(posfile, postprocess=False)
+            datasets['position'].process_dataset_positions(boxbounds=boxbounds,
+                                       properboxsize=properboxsize,
+                                       maxspeed=maxspeed,
+                                       UniVarSpl_k=1, UniVarSpl_s=0.2,
+                                       N=1, f_cut=f_cut)
         
         #get the wavelet coefficients
         wavelets = pyeegtools.get_morlet_wavelets(waveletfreqs=waveletfreqs, w=7, s=1.)
