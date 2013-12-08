@@ -2,6 +2,17 @@
 '''
 Procedures to read and analyze EEG channels Axona dacqUSB file formats
 
+These files require only a python environment with common scientific
+modules, i.e., numpy, scipy and matplotlib. Full distributions like
+"enthought canopy" or "anaconda python" comes with everything.
+To run the script, either run it from your python editor, or in ipython
+like:
+"run example_set_analysis.py"
+
+The file "pyeegtools.py" must be in the same folder,
+or added to "PYTHONPATH"
+
+
 Project home: https://code.google.com/p/hf-pyeegtools/
 
 No warranties, released under GPLv3

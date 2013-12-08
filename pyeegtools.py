@@ -2,6 +2,13 @@
 '''
 Procedures to read analyze EEG channels Axona dacqUSB file formats
 
+This file doesn't do much by itself, see example analysis scripts
+in this folder.
+These files require only a python environment with common scientific
+modules, i.e., numpy, scipy and matplotlib. Full distributions like
+"enthought canopy" or "anaconda python" comes with everything. 
+
+
 Project home: https://code.google.com/p/hf-pyeegtools/
 
 No warranties, released under GPLv3
@@ -277,7 +284,7 @@ class Posfile(object):
 
     def process_dataset_positions(self, boxbounds=[0, 500, 0, 500],
                                    properboxsize=[1., 1.],
-                                   maxspeed=200,
+                                   maxspeed=1,
                                    UniVarSpl_k=1, UniVarSpl_s=0.2,
                                    N=1, f_cut=2.):
         '''
@@ -322,12 +329,6 @@ class Posfile(object):
             print 'no valid position data found'
             self.valid = False
             return
-    
-        #find large jumps in speed, then mask out succeeding time steps
-        badinds = np.where(abs(np.diff(np.sqrt(xpos**2 + ypos**2)) / np.diff(tpos)) > maxspeed)[0]
-        inds = np.ones(tpos.size).astype(bool)
-        for i in badinds:
-            inds[i-1:i+2] = False
 
 
         #mask out data
@@ -350,6 +351,14 @@ class Posfile(object):
         ypos -= ypos.min()
         ypos /= ypos.max()*properboxsize[1]
         
+
+        #find large jumps in speed, then mask out succeeding time steps
+        badinds = np.where(abs(np.diff(np.sqrt(xpos**2 + ypos**2)) / np.diff(tpos)) > maxspeed)[0]
+        inds = np.ones(tpos.size).astype(bool)
+        for i in badinds:
+            inds[i-1:i+2] = False
+
+
     
         #use Univariate Spline interpolation of order 1 between datapoints to
         #time res of EEG.
@@ -898,10 +907,10 @@ def figure1(setname, dataset, wavelets,
                     origin='bottom',
                     cmap=plt.get_cmap('jet', 51),
                     rasterized=True)
-    plt.ylabel('f (Hz)')
-    plt.title('continous wavelet transform (%i <= f <= %i Hz)' % gammafreqs)
+    plt.ylabel('$\omega$ (Hz)')
+    plt.title('continous wavelet transform (%i <= \omega <= %i Hz)' % gammafreqs)
     plt.axis('tight')
-    colorbar(fig, ax, im, r'$|X_w|$ (-)')
+    colorbar(fig, ax, im, r'$|X_\omega|$ (-)')
     
 
     #low frequency wavelets
@@ -921,9 +930,9 @@ def figure1(setname, dataset, wavelets,
                     rasterized=True)
     plt.ylabel('f (Hz)')
     plt.xlabel('time (s)')
-    plt.title('continous wavelet transform, (%i <= f <= %i Hz)' % thetafreqs)
+    plt.title('continous wavelet transform, (%i <= \omega <= %i Hz)' % thetafreqs)
     plt.axis('tight')
-    colorbar(fig, ax, im, label=r'$|X_w|$ (-)')  
+    colorbar(fig, ax, im, label=r'$|X_\omega|$ (-)')  
     
     return fig
 
@@ -962,20 +971,20 @@ def figure2(setname, dataset, wavelets,
     
     
     ax = fig.add_subplot(421)
-    plt.plot(tvec[time_inds], dataset.eeg[time_inds], 'k')
+    plt.plot(tvec[time_inds], dataset.eeg[time_inds], 'k', rasterized=True)
     plt.ylabel(r'$\Phi_\mathrm{EEG}(t)$ (mV)')
     plt.title(r'EEG signal')
     
     
     ax = fig.add_subplot(423)
-    plt.plot(tvec[time_inds], dataset.cwt[f_theta_ind, time_inds].real, 'k')
-    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_theta_ind, time_inds]), 'r')
+    plt.plot(tvec[time_inds], dataset.cwt[f_theta_ind, time_inds].real, 'k', rasterized=True)
+    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_theta_ind, time_inds]), 'r', rasterized=True)
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
     plt.title(r'theta signal ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_theta)
     
     
     ax = fig.add_subplot(425)
-    plt.plot(tvec[time_inds], thetaphases[time_inds], 'k')
+    plt.plot(tvec[time_inds], thetaphases[time_inds], 'k', rasterized=True)
     plt.ylim(-np.pi, np.pi)
     ax.set_yticks([-np.pi,-np.pi/2, 0, np.pi/2, np.pi])
     ax.set_yticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
@@ -985,15 +994,15 @@ def figure2(setname, dataset, wavelets,
     
     
     ax = fig.add_subplot(422)
-    plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_low, time_inds].real, 'k')
-    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_low, time_inds]), 'r')
+    plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_low, time_inds].real, 'k', rasterized=True)
+    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_low, time_inds]), 'r', rasterized=True)
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
     plt.title(r'low gamma ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_gamma_low)
     
     
     ax = fig.add_subplot(424)
-    plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_high, time_inds].real, 'k')
-    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_high, time_inds]), 'r')
+    plt.plot(tvec[time_inds], dataset.cwt[f_gamma_ind_high, time_inds].real, 'k', rasterized=True)
+    plt.plot(tvec[time_inds], np.abs(dataset.cwt[f_gamma_ind_high, time_inds]), 'r', rasterized=True)
     plt.ylabel(r'$\mathrm{Re}(X_\omega)$ (-)')
     plt.title(r'high gamma ($\mathrm{Re}(X_\omega)$, $\omega$=%i Hz)' % f_gamma_high)
     
@@ -1016,7 +1025,7 @@ def figure2(setname, dataset, wavelets,
     ax.set_xticks([-np.pi,-np.pi/2, 0, np.pi/2, np.pi])
     ax.set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
     plt.title(r'phase-amplitude, $\omega$=%i Hz vs. $\omega$=%i Hz' % (f_theta, f_gamma_low))
-    plt.ylabel(r'$|(X_\omega)|$ (-)')
+    plt.ylabel(r'$|X_\omega|$ (-)')
 
     
     #compute phase-amplitude histogram (see Tort et al. 2010)
@@ -1038,19 +1047,19 @@ def figure2(setname, dataset, wavelets,
     ax.set_xticklabels([r'$-\pi$', r'$-\pi/2$', r'0', r'$\pi/2$', r'$\pi$'])
     plt.title(r'phase-amplitude, $\omega$=%i Hz vs. $\omega$=%i Hz' % (f_theta, f_gamma_high))
     plt.xlabel(r'$\theta_\omega$ (rad)')
-    plt.ylabel(r'$|(X_\omega)|$ (-)')
+    plt.ylabel(r'$|X_\omega|$ (-)')
 
 
     return fig
 
 
-def figure3(datasets, setname):
+def figure3(datasets):
     '''
     plot interpolated position data,
     if no valid data is found, return empty figure
     '''
     fig = plt.figure(figsize=(10,10))
-    fig.suptitle(setname, va='bottom')
+    fig.suptitle(datasets['setfile'], va='bottom')
 
     if datasets['position'].valid:
         post_interp = datasets['position'].time
@@ -1060,32 +1069,59 @@ def figure3(datasets, setname):
         
         ax = fig.add_axes([0.4, 0.4, 0.5, 0.5])
         #plt.plot(posx, posy, 'k.')
-        plt.plot(posx_interp, posy_interp, lw=2)
-        plt.axis('tight')
-        plt.title('position')
+        ax.plot(posx_interp, posy_interp, lw=2, rasterized=True)
+        ax.axis(ax.axis('tight'))
+        ax.set_title('position')
+        
+        ##superimpose scatter with position and magnitude of events
+        #if events:
+        #    for setname, dataset in datasets.items(): 
+        #        if setname in ['set', 'setfile', 'position', 'posfile']:
+        #            continue
+        #        cwt_freqs = dataset.cwt_freqs
+        #        cwt_events = dataset.cwt_events
+        #        cwt_times = dataset.cwt_event_times
+        #        
+        #        for freq in cwt_freqs:
+        #            times = cwt_times[freq]
+        #            inds = np.in1d(post_interp.astype('float32'),
+        #                           times.astype('float32'))
+        #            
+        #            plt.figure()
+        #            plt.hist2d(posx_interp[inds], posy_interp[inds], weights = np.abs(cwt_events[freq]).max(axis=1).max(axis=1))
+        #            plt.colorbar()
+        #            plt.title(r'%s, $\omega$=%i Hz' % (setname, freq))
+        #            
+        #            #ax.scatter(
+        #            #    posx_interp[inds],
+        #            #    posy_interp[inds],
+        #            #    s = np.abs(cwt_events[freq]).max(axis=0)*100,
+        #            #    rasterized=True
+        #            #)
+        #            #continue
+        #
     
         ax = fig.add_axes([0.4, 0.1, 0.5, 0.25])
         #plt.plot(posx, post, 'k.')
-        plt.plot(posx_interp, post_interp, lw=2)
-        plt.ylabel('t (s)')
-        plt.xlabel('x (m)')
-        plt.axis('tight')
+        ax.plot(posx_interp, post_interp, lw=2, rasterized=True)
+        ax.set_ylabel('t (s)')
+        ax.set_xlabel('x (m)')
+        ax.axis(ax.axis('tight'))
     
         ax = fig.add_axes([0.1, 0.1, 0.25, 0.25])
-        plt.plot(post_interp[1:],
+        ax.plot(post_interp[1:],
                  abs(np.diff(np.sqrt(posx_interp**2+posy_interp**2)) / np.diff(post_interp)),
-                 lw=2)
-        ax.semilogy()
-        plt.xlabel('t (s)')
-        plt.ylabel('speed (m/s)')
-        plt.axis('tight')
+                 lw=2, rasterized=True)
+        ax.set_xlabel('t (s)')
+        ax.set_ylabel('speed (m/s)')
+        ax.axis(ax.axis('tight'))
         
         ax = fig.add_axes([0.1, 0.4, 0.25, 0.5])
         #plt.plot(post, posy, 'k.')
-        plt.plot(post_interp, posy_interp, lw=2)
-        plt.xlabel('t (s)')
-        plt.ylabel('y (m)')
-        plt.axis('tight')
+        ax.plot(post_interp, posy_interp, lw=2, rasterized=True)
+        ax.set_xlabel('t (s)')
+        ax.set_ylabel('y (m)')
+        ax.axis(ax.axis('tight'))
         
     return fig
 
@@ -1133,10 +1169,10 @@ def figure4(setname, dataset, wavelets, events, freq=8, thetafreqs=(0, 20), gamm
                extent=gammaextent,
                interpolation='nearest',
                cmap=plt.get_cmap('jet', 51),
-               origin='bottom')
+               origin='bottom', rasterized=True)
     if column == 0:
         ax.set_ylabel(r'f (Hz)')
-    ax.set_title(r'$|(X_\omega)|$, $\omega$=%i Hz' % freq)
+    ax.set_title(r'$|X_\omega|$, $\omega$=%i Hz' % freq)
     ax.axis(ax.axis('tight'))
     colorbar(fig, ax, im, 'amplitude  (-)')
 
@@ -1145,7 +1181,7 @@ def figure4(setname, dataset, wavelets, events, freq=8, thetafreqs=(0, 20), gamm
                extent=thetaextent,
                interpolation='nearest',
                cmap=plt.get_cmap('jet', 51),
-               origin='bottom')
+               origin='bottom', rasterized=True)
     ax.set_xlabel('t (s)')
     ax.set_yticks(wavelets['freqs'][thetainds])
     if column == 0:
@@ -1157,7 +1193,8 @@ def figure4(setname, dataset, wavelets, events, freq=8, thetafreqs=(0, 20), gamm
 
 
 def figure5(setname, dataset, wavelets, cycles, events,
-            thetafreqs=(0, 20), gammafreqs=(20, 80), f_theta=8):
+            thetafreqs=(0, 20), gammafreqs=(20, 80), f_theta=8,
+            whitening=True):
     '''
     draw image plots of cycle averaged responses at a given frequency
     
@@ -1172,16 +1209,22 @@ def figure5(setname, dataset, wavelets, cycles, events,
     #get duration of events
     window = float(events.shape[2]) / dataset.Fs
     
-    #get the imshow extents
-    thetaextent = [-window/2.,
-                   window/2.,
-              wavelets['freqs'][thetainds][0] - 1,
-              wavelets['freqs'][thetainds][-1] + 1]
-    
-    gammaextent = [-window/2., window/2.,
-              wavelets['freqs'][gammainds][0] - 1,
-              wavelets['freqs'][gammainds][-1] + 1]
+    ##get the imshow extents
+    extent = [-window/2.,
+                window/2.,
+                wavelets['freqs'][0]-1,
+                wavelets['freqs'][-1] + 1]
 
+    #normalize mean at each given frequency 
+    if whitening:
+        for i in xrange(events.shape[1]):
+            events[:, i, :] /= events[:, i, :].mean()
+        events_mean = events.mean(axis=0)
+        cbarlabel = r'norm$(|X_\omega|)$ (-)'
+    else:
+        events_mean = events.mean(axis=0)
+        cbarlabel = r'$|X_\omega|$ (-)'
+    
     
     #set up figure object
     fig = plt.figure(figsize=(10,10))
@@ -1189,32 +1232,23 @@ def figure5(setname, dataset, wavelets, cycles, events,
     
 
     #draw in figure
-    ax = fig.add_axes([0.1, 0.5, 0.8, 0.4])
-    im = ax.imshow(events.mean(axis=0)[gammainds],
-               extent=gammaextent,
+    ax = fig.add_axes([0.1, 0.25, 0.8, 0.65])
+    im = ax.imshow(events_mean,
+               extent=extent,
                interpolation='nearest',
                cmap=plt.get_cmap('jet', 51),
-               origin='bottom')
-    ax.set_ylabel(r'f (Hz)')
-    ax.set_title(r'$|(X_\omega)|$, $\omega$=%i Hz average' % f_theta)
-    ax.axis(ax.axis('tight'))
-    colorbar(fig, ax, im, r'$|(X_\omega)|$ (-)')
-
-    ax = fig.add_axes([0.1, 0.25, 0.8, 0.2])
-    im = ax.imshow(events.mean(axis=0)[thetainds],
-               extent=thetaextent,
-               interpolation='nearest',
-               cmap=plt.get_cmap('jet', 51),
-               origin='bottom')
+               clim = (-abs(events_mean).max(), abs(events_mean).max())
+               origin='bottom', rasterized=True)
     ax.set_ylabel(r'f (Hz)')
     ax.axis(ax.axis('tight'))
-    colorbar(fig, ax, im, r'$|(X_\omega)|$ (-)')
+    
+    colorbar(fig, ax, im, cbarlabel)
     
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.1])
     ax.plot((np.arange(cycles.shape[1])-cycles.shape[1]/2)*1./dataset.Fs,
                         cycles.mean(axis=0))
     ax.axis(ax.axis('tight'))
-    ax.set_ylabel(r'$|(X_\omega)|$, $\omega$=%i Hz' % f_theta)
+    ax.set_ylabel(r'$|X_\omega|$, $\omega$=%i Hz' % f_theta)
     ax.set_xlabel('t (s)')
     
     #return figure object
@@ -1302,8 +1336,8 @@ def figure7(setname, dataset, wavelets,
             tvec = np.arange(dataset.Fs*2*window).astype(float) / dataset.Fs - 0.5
             ind = wavelets['freqs'] == f
             ax = fig.add_subplot(len(freqs), len(freqs), subplot)
-            ax.plot(tvec, cwt_events.mean(axis=0).real[ind].flatten(), 'k', label='$\omega$=%i Hz' % f)
-            ax.plot(tvec, np.abs(cwt_events.mean(axis=0))[ind].flatten(), 'r')
+            ax.plot(tvec, cwt_events.mean(axis=0).real[ind].flatten(), 'k', label='$\omega$=%i Hz' % f, rasterized=True)
+            ax.plot(tvec, np.abs(cwt_events.mean(axis=0))[ind].flatten(), 'r', rasterized=True)
             ax.set_title(r'$\mathrm{Re}(\bar{X_\omega})$, $\omega$=%iHz, %iHz' % (freq, f))
             ax.axis(ax.axis('tight'))
             
@@ -1345,7 +1379,7 @@ def figure8(datasets, time_window=(0, 5)):
     
         ax = fig.add_subplot(len(keys), 1, subplot)
         remove_axis_junk(ax)        
-        ax.plot(tvec[time_inds], dataset.eeg[time_inds])            
+        ax.plot(tvec[time_inds], dataset.eeg[time_inds], rasterized=True)            
         if i == 0:
             ax.set_title('EEG time series')
         ax.set_ylabel('ch. %i (mV)' % (i+1))
@@ -1380,7 +1414,7 @@ def figure9(datasets, NFFT=256):
                 remove_axis_junk(ax)
                 Cxy, f = plt.mlab.cohere(datasets[keys[i]].eeg, datasets[keys[j]].eeg,
                            NFFT=NFFT, Fs=datasets[keys[i]].Fs)
-                ax.plot(f, Cxy, 'k', clip_on=False)
+                ax.plot(f, Cxy, 'k', clip_on=False, rasterized=True)
                 ax.set_xticks([0, 50, 100])
                 ax.axis('tight')
                 ax.set_title('ch%i:ch%i' % (i+1, j+1))
@@ -1463,7 +1497,7 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
         ax.set_xticklabels(xticklabels, rotation=30)
         ax.set_title(titles[i])
         if i ==0:
-            ax.set_ylabel(r'$|X_w|$ amplitudes (-)')
+            ax.set_ylabel(r'$|X_\omega|$ amplitudes (-)')
             
     return fig
 
