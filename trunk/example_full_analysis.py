@@ -2,6 +2,17 @@
 '''
 Procedures to read and analyze EEG channels Axona dacqUSB file formats
 
+These files require only a python environment with common scientific
+modules, i.e., numpy, scipy and matplotlib. Full distributions like
+"enthought canopy" or "anaconda python" comes with everything.
+To run the script, either run it from your python editor, or in ipython
+like:
+"run example_full_analysis.py"
+
+The file "pyeegtools.py" must be in the same folder,
+or added to "PYTHONPATH"
+
+
 Project home: https://code.google.com/p/hf-pyeegtools/
 
 No warranties, released under GPLv3
@@ -48,11 +59,11 @@ if __name__ == '__main__':
     
     
     #position file, arbitrary units, probably corresponding to 1 x 1 m
-    #boxbounds = [30, 430, 60, 455] #[left, right, bottom, top], guessed box size
-    boxbounds = [0, 500, 0, 500] #[left, right, bottom, top], guessed box size
+    #boxbounds = [30, 430, 60, 455] #[left, right, bottom, top], guessed box size, acquisition units
+    boxbounds = [0, 500, 0, 500] #[left, right, bottom, top], guessed box size, acquisition units
     properboxsize = (1., 1.)  #normalize pos in (m), assume animal went edge-to-edge  
     
-    maxspeed = 200    #max possible speed in boxbounds units (acquisition units)
+    maxspeed = 1    #max possible speed in (ms-1)
     #speedlimit = 0.01 #1 cm/s, less than this, animal sit still
     speedlimit = [[0, 0.01], [0.01, 0.10], [0.01, np.inf]] 
     f_cut=2. #spatial low-pass filter cutoff frequency, Hz
@@ -80,10 +91,12 @@ if __name__ == '__main__':
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1199/*.set")[:4]    
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[5:6]
-        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
-        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
-        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
 
+        setfiles = setfiles[:1]
+        
     if len(setfiles) == 0:
         raise Exception, 'no files matched file pattern!'
 
@@ -106,23 +119,23 @@ if __name__ == '__main__':
         datasets = pyeegtools.get_datasets(setfile=setfile)
 
 
-        #load pos file if present using Pos class, interpolate between points
-        posfile = setfile.split('.set')[0] + '.pos'
-        if os.path.isfile(posfile):
-            datasets['posfile'] = posfile
-            datasets['position'] = pyeegtools.Posfile(posfile, postprocess=False)
-            datasets['position'].process_dataset_positions(boxbounds=boxbounds,
-                                       properboxsize=properboxsize,
-                                       maxspeed=maxspeed,
-                                       UniVarSpl_k=1, UniVarSpl_s=0.2,
-                                       N=1, f_cut=f_cut)
+        ##load pos file if present using Pos class, interpolate between points
+        #posfile = setfile.split('.set')[0] + '.pos'
+        #if os.path.isfile(posfile):
+        #    datasets['posfile'] = posfile
+        #    datasets['position'] = pyeegtools.Posfile(posfile, postprocess=False)
+        #    datasets['position'].process_dataset_positions(boxbounds=boxbounds,
+        #                               properboxsize=properboxsize,
+        #                               maxspeed=maxspeed,
+        #                               UniVarSpl_k=1, UniVarSpl_s=0.2,
+        #                               N=1, f_cut=f_cut)
         
         #get the wavelet coefficients
         wavelets = pyeegtools.get_morlet_wavelets(waveletfreqs=waveletfreqs, w=7, s=1.)
         #w=7 from Colgin et al. 2009
         
         #compute the continuous wavelet transforms
-        pyeegtools.apply_wavelets(datasets, wavelets, method='convolve')
+        pyeegtools.apply_wavelets(datasets, wavelets, method='fftconvolve')
 
         
         ##extract wavelet events and times at given frequencies:
@@ -191,19 +204,20 @@ if __name__ == '__main__':
             plt.close(fig2)
             
             
-            #may not want to look at this for now.
-            if True:
-                #compute cycle-averaged response across all frequencies
-                cycles, events, event_times = pyeegtools.compute_cycle_average(dataset,
-                                                                    wavelets,
-                                                                    freq=f_theta,
-                                                                    numcycles=100)
-                
-                #do some plotting
-                fig = pyeegtools.figure5(setname, dataset, wavelets, cycles, events,
-                              thetafreqs=thetafreqs, gammafreqs=gammafreqs, f_theta=f_theta)
-                fig.savefig(os.path.join(figdest, 'cycle_average_') + setname + '.pdf', dpi=100)
-                plt.close(fig)
+            #compute cycle-averaged response across all frequencies
+            cycles, events, event_times = pyeegtools.compute_cycle_average(dataset,
+                                                                wavelets,
+                                                                freq=f_theta,
+                                                                numcycles=200)
+            
+            fig = pyeegtools.figure5(setname, dataset, wavelets, cycles, events,
+                          thetafreqs=thetafreqs, gammafreqs=gammafreqs, f_theta=f_theta,
+                          whitening=True)
+            fig.savefig(os.path.join(figdest, 'cycle_average_') + setname + '.pdf', dpi=100)
+            plt.close(fig)
+        
+        
+        
         
             fig, Cxy, f = pyeegtools.draw_crossfreq_coherence(setname, dataset, wavelets,
                                                           NFFT=NFFT, fcutoff=2, clim=None)
@@ -219,7 +233,7 @@ if __name__ == '__main__':
         
         
         if datasets['position'].valid:
-            fig = pyeegtools.figure3(datasets, setname)
+            fig = pyeegtools.figure3(datasets)
             fig.savefig(os.path.join(figdest, 'position_') + figname_postfix + '.pdf', dpi=100)
             plt.close('all')
         
