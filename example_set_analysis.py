@@ -89,6 +89,7 @@ if __name__ == '__main__':
         #setfiles += glob.glob("Z:\\Espen\\rats\\1227\\*.set")[:4]
         setfiles += glob.glob("Z:\\Espen\\rats\\1399\\*.set")[:4]
         setfiles += glob.glob("Z:\\Espen\\rats\\1400\\*.set")[:3]
+        setfiles += glob.glob("Z:\\Espen\\rats\\1416\\*.set")
         
     #OS X, Linux, Unix etc
     else:
@@ -97,6 +98,7 @@ if __name__ == '__main__':
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[:4]    
         setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
         setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1416/*.set")    
 
     if len(setfiles) == 0:
         raise Exception, 'no files matched file pattern!'
