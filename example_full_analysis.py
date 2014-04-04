@@ -86,7 +86,8 @@ if __name__ == '__main__':
         #setfiles += glob.glob("Z:\\Espen\\rats\\1371\\*.set")
         #setfiles += glob.glob("Z:\\Espen\\rats\\1399\\*.set")[:4]
         #setfiles += glob.glob("Z:\\Espen\\rats\\1400\\*.set")[:3]
-        setfiles += glob.glob("Z:\\Espen\\rats\\1416\\*.set")
+        #setfiles += glob.glob("Z:\\Espen\\rats\\1416\\*.set")
+        setfiles += glob.glob("Z:\\Kristian\\DATA\\1400\\*.set")
     #OS X, Linux, Unix etc
     else:
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1079/*.set")[:4]   
@@ -252,7 +253,14 @@ if __name__ == '__main__':
             plt.close(fig)
         
             #plot event amplitude distributions
-            fig = pyeegtools.plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
+            (data, fig) = pyeegtools.plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
                                                  freqs=cwt_freqs)
             fig.savefig(os.path.join(figdest, 'EEG_event_amplitudes_') + figname_postfix + '.pdf', dpi=100)
             plt.close(fig)
+            
+            import csv
+            outfile=('event_amplitude_results.csv', 'wb')
+            writer=csv.writer(outfile)
+            writer.writerow(data)
+            outfile.close()
+            

@@ -1503,5 +1503,5 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
         if i ==0:
             ax.set_ylabel(r'$|X_\omega|$ amplitudes (-)')
             
-    return fig
+    return data, fig
 
