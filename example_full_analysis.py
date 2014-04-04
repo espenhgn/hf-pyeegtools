@@ -25,6 +25,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import os
+import csv
 
 import pyeegtools
 
@@ -95,8 +96,8 @@ if __name__ == '__main__':
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1227/*.set")[5:6]
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1371/*.set")
         #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1399/*.set")[:4]    
-        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")[:3]    
-        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1416/*1402.set")    
+        setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1400/*.set")
+        #setfiles += glob.glob("/Volumes/imbv-hafting/Espen/rats/1416/*1402.set")    
 
         
     if len(setfiles) == 0:
@@ -258,9 +259,12 @@ if __name__ == '__main__':
             fig.savefig(os.path.join(figdest, 'EEG_event_amplitudes_') + figname_postfix + '.pdf', dpi=100)
             plt.close(fig)
             
-            import csv
-            outfile=('event_amplitude_results.csv', 'wb')
-            writer=csv.writer(outfile)
-            writer.writerow(data)
-            outfile.close()
+            #write the plotted output to file
+            f = file(os.path.join(figdest, 'EEG_event_amplitudes_' + figname_postfix + '.csv'), 'w')
+            writer = csv.writer(f)
+            #iterate over output data,
+            for key in cwt_freqs:
+                for row in data[key]:
+                    writer.writerow([key]+row.tolist())
+            f.close()
             

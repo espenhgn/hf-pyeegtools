@@ -1459,10 +1459,12 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
     fig.subplots_adjust(bottom=0.15)
     fig.suptitle(datasets['setfile'])
 
+    outputdata = {}
     #iterate over frequencies
     for i, freq in enumerate(freqs):
         #container:
         data = []
+        
         xticklabels = []
         #get the peak amplitude for given frequency
         ind = np.where(wavelets['freqs'] == freq)[0]
@@ -1502,6 +1504,9 @@ def plot_datasets_event_amplitudes(datasets, wavelets, speedlimit,
         ax.set_title(titles[i])
         if i ==0:
             ax.set_ylabel(r'$|X_\omega|$ amplitudes (-)')
-            
-    return data, fig
+        
+        outputdata[freq] = data
+        
+        
+    return outputdata, fig
 
